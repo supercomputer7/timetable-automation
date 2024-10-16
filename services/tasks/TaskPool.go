@@ -325,7 +325,7 @@ func (p *TaskPool) AddTask(taskObj db.Task, userID *int, projectID int) (newTask
 	taskObj.Status = task_logger.TaskWaitingStatus
 	taskObj.UserID = userID
 	taskObj.ProjectID = projectID
-	extraSecretVars := taskObj.Secret
+	// extraSecretVars := taskObj.Secret
 	taskObj.Secret = "{}"
 
 	tpl, err := p.store.GetTemplate(projectID, taskObj.TemplateID)
@@ -338,19 +338,19 @@ func (p *TaskPool) AddTask(taskObj db.Task, userID *int, projectID int) (newTask
 		return
 	}
 
-	if tpl.Type == db.TemplateBuild { // get next version for TaskRunner if it is a Build
-		var builds []db.TaskWithTpl
-		builds, err = p.store.GetTemplateTasks(tpl.ProjectID, tpl.ID, db.RetrieveQueryParams{Count: 1})
-		if err != nil {
-			return
-		}
-		if len(builds) == 0 || builds[0].Version == nil {
-			taskObj.Version = tpl.StartVersion
-		} else {
-			v := getNextBuildVersion(*tpl.StartVersion, *builds[0].Version)
-			taskObj.Version = &v
-		}
-	}
+	// if tpl.Type == db.TemplateBuild { // get next version for TaskRunner if it is a Build
+	// 	var builds []db.TaskWithTpl
+	// 	builds, err = p.store.GetTemplateTasks(tpl.ProjectID, tpl.ID, db.RetrieveQueryParams{Count: 1})
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	if len(builds) == 0 || builds[0].Version == nil {
+	// 		taskObj.Version = tpl.StartVersion
+	// 	} else {
+	// 		v := getNextBuildVersion(*tpl.StartVersion, *builds[0].Version)
+	// 		taskObj.Version = &v
+	// 	}
+	// }
 
 	newTask, err = p.store.CreateTask(taskObj, util.Config.MaxTasksPerTemplate)
 	if err != nil {
@@ -379,17 +379,11 @@ func (p *TaskPool) AddTask(taskObj db.Task, userID *int, projectID int) (newTask
 	} else {
 		app := db_lib.CreateApp(
 			taskRunner.Template,
-			taskRunner.Repository,
-			taskRunner.Inventory,
 			&taskRunner)
 
 		job = &LocalJob{
 			Task:        taskRunner.Task,
 			Template:    taskRunner.Template,
-			Inventory:   taskRunner.Inventory,
-			Repository:  taskRunner.Repository,
-			Environment: taskRunner.Environment,
-			Secret:      extraSecretVars,
 			Logger:      app.SetLogger(&taskRunner),
 			App:         app,
 		}

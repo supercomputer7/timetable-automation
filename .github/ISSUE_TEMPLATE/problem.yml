@@ -165,9 +165,6 @@ body:
         * Environment variables
         * WebUI configuration
           * Task templates
-          * Inventories
-          * Environment
-          * Repositories
           * ...
 
     validations:

@@ -158,64 +158,9 @@
           v-if="needField('playbook')"
         ></v-text-field>
 
-        <v-select
-          v-model="item.inventory_id"
-          :label="fieldLabel('inventory')"
-          :items="inventory"
-          item-value="id"
-          item-text="name"
-          outlined
-          dense
-          required
-          :disabled="formSaving"
-          v-if="needField('inventory')"
-        ></v-select>
-
-        <v-select
-          v-model="item.repository_id"
-          :label="fieldLabel('repository') + ' *'"
-          :items="repositories"
-          item-value="id"
-          item-text="name"
-          :rules="isFieldRequired('repository') ? [v => !!v || $t('repository_required')] : []"
-          outlined
-          dense
-          :required="isFieldRequired('repository')"
-          :disabled="formSaving"
-          v-if="needField('repository')"
-        ></v-select>
-
-        <v-select
-          v-model="item.environment_id"
-          :label="fieldLabel('environment')"
-          :items="environment"
-          item-value="id"
-          item-text="name"
-          :rules="isFieldRequired('environment') ? [v => !!v || $t('environment_required')] : []"
-          outlined
-          dense
-          :required="isFieldRequired('environment')"
-          :disabled="formSaving"
-          v-if="needField('environment')"
-        ></v-select>
-
-        <TemplateVaults
-          v-if="itemTypeIndex === 0 && needField('vault')"
-          :project-id="this.projectId"
-          :vaults="item.vaults"
-          @change="setTemplateVaults"
-        ></TemplateVaults>
-
       </v-col>
 
       <v-col cols="12" md="6" class="pb-0">
-
-        <TemplateVaults
-          v-if="itemTypeIndex > 0 && needField('vault')"
-          :project-id="this.projectId"
-          :vaults="item.vaults"
-          @change="setTemplateVaults"
-        ></TemplateVaults>
 
         <SurveyVars style="margin-top: -10px;" :vars="item.survey_vars" @change="setSurveyVars"/>
 
@@ -230,40 +175,6 @@
           outlined
           dense
         ></v-select>
-
-        <v-checkbox
-          class="mt-0"
-          :label="$t('iWantToRunATaskByTheCronOnlyForForNewCommitsOfSome')"
-          v-model="cronVisible"
-        />
-
-        <v-select
-          v-if="cronVisible"
-          v-model="cronRepositoryId"
-          :label="$t('repository2')"
-          :placeholder="$t('cronChecksNewCommitBeforeRun')"
-          :rules="[v => !!v || $t('repository_required')]"
-          :items="repositories"
-          item-value="id"
-          item-text="name"
-          clearable
-          :disabled="formSaving"
-          outlined
-          dense
-        ></v-select>
-
-        <v-select
-          v-if="cronVisible"
-          v-model="cronFormat"
-          :label="$t('checkInterval')"
-          :hint="$t('newCommitCheckInterval')"
-          item-value="cron"
-          item-text="title"
-          :items="cronFormats"
-          :disabled="formSaving"
-          outlined
-          dense
-        />
 
         <v-checkbox
           class="mt-0"
@@ -302,7 +213,6 @@ import 'codemirror/mode/vue/vue.js';
 import 'codemirror/addon/lint/json-lint.js';
 import 'codemirror/addon/display/placeholder.js';
 import ArgsPicker from '@/components/ArgsPicker.vue';
-import TemplateVaults from '@/components/TemplateVaults.vue';
 import { TEMPLATE_TYPE_ICONS, TEMPLATE_TYPE_TITLES } from '../lib/constants';
 import SurveyVars from './SurveyVars';
 
@@ -310,7 +220,6 @@ export default {
   mixins: [ItemFormBase],
 
   components: {
-    TemplateVaults,
     ArgsPicker,
     SurveyVars,
   },
@@ -351,14 +260,10 @@ export default {
         indentWithTabs: false,
       },
       item: null,
-      inventory: null,
-      repositories: null,
-      environment: null,
       views: null,
       schedules: null,
       buildTemplates: null,
       cronFormat: '* * * * *',
-      cronRepositoryId: null,
       cronVisible: false,
 
       helpDialog: null,
@@ -393,10 +298,7 @@ export default {
         return true;
       }
 
-      return this.repositories != null
-        && this.inventory != null
-        && this.environment != null
-        && this.item != null
+      return this.item != null
         && this.schedules != null
         && this.views != null;
     },
@@ -423,10 +325,6 @@ export default {
       this.item.survey_vars = v;
     },
 
-    setTemplateVaults(v) {
-      this.item.vaults = v;
-    },
-
     showHelpDialog(key) {
       this.helpKey = key;
       this.helpDialog = true;
@@ -443,24 +341,6 @@ export default {
       }
 
       this.advancedOptions = this.item.arguments != null || this.item.allow_override_args_in_task;
-
-      this.repositories = (await axios({
-        keys: 'get',
-        url: `/api/project/${this.projectId}/repositories`,
-        responseType: 'json',
-      })).data;
-
-      this.inventory = (await axios({
-        keys: 'get',
-        url: `/api/project/${this.projectId}/inventory`,
-        responseType: 'json',
-      })).data;
-
-      this.environment = (await axios({
-        keys: 'get',
-        url: `/api/project/${this.projectId}/environment`,
-        responseType: 'json',
-      })).data;
 
       const template = (await axios({
         keys: 'get',
@@ -508,15 +388,6 @@ export default {
         responseType: 'json',
       })).data;
 
-      if (this.schedules.length > 0) {
-        const schedule = this.schedules.find((s) => s.repository_id != null);
-        if (schedule != null) {
-          this.cronFormat = schedule.cron_format;
-          this.cronRepositoryId = schedule.repository_id;
-          this.cronVisible = this.cronRepositoryId != null;
-        }
-      }
-
       this.itemTypeIndex = Object.keys(TEMPLATE_TYPE_ICONS).indexOf(this.item.type);
     },
 
@@ -559,7 +430,6 @@ export default {
               project_id: this.projectId,
               template_id: newItem ? newItem.id : this.itemId,
               cron_format: this.cronFormat,
-              repository_id: this.cronRepositoryId,
               active: true,
             },
           });
@@ -584,7 +454,6 @@ export default {
             project_id: this.projectId,
             template_id: this.itemId,
             cron_format: this.cronFormat,
-            repository_id: this.cronRepositoryId,
           },
         });
       }

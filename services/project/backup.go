@@ -79,41 +79,12 @@ func (b *BackupDB) makeUniqueNames() {
 		item.Name = name
 	})
 
-	makeUniqueNames(b.repositories, func(item *db.Repository) string {
-		return item.Name
-	}, func(item *db.Repository, name string) {
-		item.Name = name
-	})
-
-	makeUniqueNames(b.inventories, func(item *db.Inventory) string {
-		return item.Name
-	}, func(item *db.Inventory, name string) {
-		item.Name = name
-	})
-
-	makeUniqueNames(b.environments, func(item *db.Environment) string {
-		return item.Name
-	}, func(item *db.Environment, name string) {
-		item.Name = name
-	})
-
-	makeUniqueNames(b.keys, func(item *db.AccessKey) string {
-		return item.Name
-	}, func(item *db.AccessKey, name string) {
-		item.Name = name
-	})
-
 	makeUniqueNames(b.views, func(item *db.View) string {
 		return item.Title
 	}, func(item *db.View, name string) {
 		item.Title = name
 	})
 
-	makeUniqueNames(b.integrations, func(item *db.Integration) string {
-		return item.Name
-	}, func(item *db.Integration, name string) {
-		item.Name = name
-	})
 }
 
 func (b *BackupDB) load(projectID int, store db.Store) (err error) {
@@ -123,27 +94,7 @@ func (b *BackupDB) load(projectID int, store db.Store) (err error) {
 		return
 	}
 
-	b.repositories, err = store.GetRepositories(projectID, db.RetrieveQueryParams{})
-	if err != nil {
-		return
-	}
-
-	b.keys, err = store.GetAccessKeys(projectID, db.RetrieveQueryParams{})
-	if err != nil {
-		return
-	}
-
 	b.views, err = store.GetViews(projectID)
-	if err != nil {
-		return
-	}
-
-	b.inventories, err = store.GetInventories(projectID, db.RetrieveQueryParams{})
-	if err != nil {
-		return
-	}
-
-	b.environments, err = store.GetEnvironments(projectID, db.RetrieveQueryParams{})
 	if err != nil {
 		return
 	}
@@ -160,84 +111,16 @@ func (b *BackupDB) load(projectID int, store db.Store) (err error) {
 		return
 	}
 
-	b.integrationProjAliases, err = store.GetIntegrationAliases(projectID, nil)
-	if err != nil {
-		return
-	}
-
-	b.integrations, err = store.GetIntegrations(projectID, db.RetrieveQueryParams{})
-	if err != nil {
-		return
-	}
-
-	b.integrationAliases = make(map[int][]db.IntegrationAlias)
-	b.integrationMatchers = make(map[int][]db.IntegrationMatcher)
-	b.integrationExtractValues = make(map[int][]db.IntegrationExtractValue)
-	for _, o := range b.integrations {
-		b.integrationAliases[o.ID], err = store.GetIntegrationAliases(projectID, &o.ID)
-		if err != nil {
-			return
-		}
-		b.integrationMatchers[o.ID], err = store.GetIntegrationMatchers(projectID, db.RetrieveQueryParams{}, o.ID)
-		if err != nil {
-			return
-		}
-		b.integrationExtractValues[o.ID], err = store.GetIntegrationExtractValues(projectID, db.RetrieveQueryParams{}, o.ID)
-		if err != nil {
-			return
-		}
-	}
-
 	b.makeUniqueNames()
 
 	return
 }
 
 func (b *BackupDB) format() (*BackupFormat, error) {
-	keys := make([]BackupAccessKey, len(b.keys))
-	for i, o := range b.keys {
-		keys[i] = BackupAccessKey{
-			o,
-		}
-	}
-
-	environments := make([]BackupEnvironment, len(b.environments))
-	for i, o := range b.environments {
-		environments[i] = BackupEnvironment{
-			o,
-		}
-	}
-
-	inventories := make([]BackupInventory, len(b.inventories))
-	for i, o := range b.inventories {
-		var SSHKey *string = nil
-		if o.SSHKeyID != nil {
-			SSHKey, _ = findNameByID[db.AccessKey](*o.SSHKeyID, b.keys)
-		}
-		var BecomeKey *string = nil
-		if o.BecomeKeyID != nil {
-			BecomeKey, _ = findNameByID[db.AccessKey](*o.BecomeKeyID, b.keys)
-		}
-		inventories[i] = BackupInventory{
-			Inventory: o,
-			SSHKey:    SSHKey,
-			BecomeKey: BecomeKey,
-		}
-	}
-
 	views := make([]BackupView, len(b.views))
 	for i, o := range b.views {
 		views[i] = BackupView{
 			o,
-		}
-	}
-
-	repositories := make([]BackupRepository, len(b.repositories))
-	for i, o := range b.repositories {
-		SSHKey, _ := findNameByID[db.AccessKey](o.SSHKeyID, b.keys)
-		repositories[i] = BackupRepository{
-			Repository: o,
-			SSHKey:     SSHKey,
 		}
 	}
 
@@ -247,92 +130,25 @@ func (b *BackupDB) format() (*BackupFormat, error) {
 		if o.ViewID != nil {
 			View, _ = findNameByID[db.View](*o.ViewID, b.views)
 		}
-		var vaults []BackupTemplateVault = nil
-		for _, vault := range o.Vaults {
-			var vaultKey *string = nil
-			vaultKey, _ = findNameByID[db.AccessKey](vault.VaultKeyID, b.keys)
-			vaults = append(vaults, BackupTemplateVault{
-				TemplateVault: vault,
-				VaultKey:      *vaultKey,
-			})
-
-		}
-		var Environment *string = nil
-		if o.EnvironmentID != nil {
-			Environment, _ = findNameByID[db.Environment](*o.EnvironmentID, b.environments)
-		}
 		var BuildTemplate *string = nil
 		if o.BuildTemplateID != nil {
 			BuildTemplate, _ = findNameByID[db.Template](*o.BuildTemplateID, b.templates)
-		}
-		Repository, _ := findNameByID[db.Repository](o.RepositoryID, b.repositories)
-
-		var Inventory *string = nil
-		if o.InventoryID != nil {
-			Inventory, _ = findNameByID[db.Inventory](*o.InventoryID, b.inventories)
 		}
 
 		templates[i] = BackupTemplate{
 			Template:      o,
 			View:          View,
-			Repository:    *Repository,
-			Inventory:     Inventory,
-			Environment:   Environment,
 			BuildTemplate: BuildTemplate,
 			Cron:          getScheduleByTemplate(o.ID, b.schedules),
-			Vaults:        vaults,
 		}
-	}
-
-	integrations := make([]BackupIntegration, len(b.integrations))
-	for i, o := range b.integrations {
-
-		var aliases []string
-
-		for _, a := range b.integrationAliases[o.ID] {
-			aliases = append(aliases, a.Alias)
-		}
-
-		tplName, _ := findNameByID[db.Template](o.TemplateID, b.templates)
-
-		if tplName == nil {
-			continue
-		}
-
-		var keyName *string
-
-		if o.AuthSecretID != nil {
-			keyName, _ = findNameByID[db.AccessKey](*o.AuthSecretID, b.keys)
-		}
-
-		integrations[i] = BackupIntegration{
-			Integration:   o,
-			Aliases:       aliases,
-			Matchers:      b.integrationMatchers[o.ID],
-			ExtractValues: b.integrationExtractValues[o.ID],
-			Template:      *tplName,
-			AuthSecret:    keyName,
-		}
-	}
-
-	var integrationAliases []string
-
-	for _, alias := range b.integrationProjAliases {
-		integrationAliases = append(integrationAliases, alias.Alias)
 	}
 
 	return &BackupFormat{
 		Meta: BackupMeta{
 			b.meta,
 		},
-		Inventories:        inventories,
-		Environments:       environments,
 		Views:              views,
-		Repositories:       repositories,
-		Keys:               keys,
 		Templates:          templates,
-		Integration:        integrations,
-		IntegrationAliases: integrationAliases,
 	}, nil
 }
 

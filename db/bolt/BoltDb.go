@@ -67,10 +67,6 @@ func makeBucketId(props db.ObjectProps, ids ...int) []byte {
 	return []byte(id)
 }
 
-func (d *BoltDb) Migrate() error {
-	return nil
-}
-
 func (d *BoltDb) openDbFile() {
 	var filename string
 	if d.Filename == "" {
@@ -462,7 +458,7 @@ func (d *BoltDb) apply(bucketID int, props db.ObjectProps, params db.RetrieveQue
 }
 
 func (d *BoltDb) deleteObject(bucketID int, props db.ObjectProps, objectID objectID, tx *bbolt.Tx) error {
-	for _, u := range []db.ObjectProps{db.TemplateProps, db.EnvironmentProps, db.InventoryProps, db.RepositoryProps} {
+	for _, u := range []db.ObjectProps{db.TemplateProps} {
 		inUse, err := d.isObjectInUse(bucketID, props, objectID, u)
 		if err != nil {
 			return err
@@ -675,16 +671,6 @@ func (d *BoltDb) getReferringObjectByParentID(parentID int, objProps db.ObjectPr
 
 func (d *BoltDb) getObjectRefs(projectID int, objectProps db.ObjectProps, objectID int) (refs db.ObjectReferrers, err error) {
 	refs.Templates, err = d.getObjectRefsFrom(projectID, objectProps, intObjectID(objectID), db.TemplateProps)
-	if err != nil {
-		return
-	}
-
-	refs.Repositories, err = d.getObjectRefsFrom(projectID, objectProps, intObjectID(objectID), db.RepositoryProps)
-	if err != nil {
-		return
-	}
-
-	refs.Inventories, err = d.getObjectRefsFrom(projectID, objectProps, intObjectID(objectID), db.InventoryProps)
 	if err != nil {
 		return
 	}

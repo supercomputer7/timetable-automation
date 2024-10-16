@@ -45,49 +45,6 @@
       :disabled="formSaving"
     />
 
-    <div v-for="(v) in template.survey_vars || []" :key="v.name">
-
-      <v-text-field
-        v-if="v.type === 'secret'"
-        :label="v.title"
-        :hint="v.description"
-        v-model="editedSecretEnvironment[v.name]"
-        :required="v.required"
-        type="password"
-        :rules="[
-            val => !v.required || !!val || v.title + $t('isRequired'),
-          ]"
-      />
-
-      <v-select
-        clearable
-        v-else-if="v.type === 'enum'"
-        :label="v.title + (v.required ? ' *' : '')"
-        :hint="v.description"
-        v-model="editedEnvironment[v.name]"
-        :required="v.required"
-        :rules="[
-          val => !v.required || val != null || v.title + ' ' + $t('isRequired')
-        ]"
-        :items="v.values"
-        item-text="name"
-        item-value="value"
-      />
-
-      <v-text-field
-        v-else
-        :label="v.title + (v.required ? ' *' : '')"
-        :hint="v.description"
-        v-model="editedEnvironment[v.name]"
-        :required="v.required"
-        :rules="[
-          val => !v.required || !!val || v.title + ' ' + $t('isRequired'),
-          val => !val || v.type !== 'int' || /^\d+$/.test(val) ||
-          v.title + ' ' + $t('mustBeInteger'),
-        ]"
-      />
-    </div>
-
     <TaskParamsForm v-if="template.app === 'ansible'" v-model="item" :app="template.app" />
     <TaskParamsForm v-else v-model="item.params" :app="template.app" />
 
@@ -128,8 +85,6 @@ export default {
       template: null,
       buildTasks: null,
       commitAvailable: null,
-      editedEnvironment: null,
-      editedSecretEnvironment: null,
       cmOptions: {
         tabSize: 2,
         mode: 'application/json',
@@ -199,8 +154,6 @@ export default {
         this.item[field] = v[field];
       });
 
-      this.editedEnvironment = JSON.parse(v.environment || '{}');
-      this.editedSecretEnvironment = JSON.parse(v.secret || '{}');
       this.commitAvailable = v.commit_hash != null;
     },
 
@@ -208,11 +161,6 @@ export default {
       return this.item != null
         && this.template != null
         && this.buildTasks != null;
-    },
-
-    beforeSave() {
-      this.item.environment = JSON.stringify(this.editedEnvironment);
-      this.item.secret = JSON.stringify(this.editedSecretEnvironment);
     },
 
     async afterLoadData() {

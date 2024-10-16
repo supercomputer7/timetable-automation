@@ -17,9 +17,6 @@ type test1 struct {
 	Removed        bool   `db:"removed"`
 }
 
-var inventoryID = 10
-var environmentID = 10
-
 func TestMarshalObject_UserWithPwd(t *testing.T) {
 	user := db.UserWithPwd{
 		Pwd: "123456",
@@ -87,46 +84,6 @@ func TestUnmarshalObject(t *testing.T) {
 	}
 }
 
-func TestSortObjects(t *testing.T) {
-	objects := []db.Inventory{
-		{
-			ID:   1,
-			Name: "x",
-		},
-		{
-			ID:   2,
-			Name: "a",
-		},
-		{
-			ID:   3,
-			Name: "d",
-		},
-		{
-			ID:   4,
-			Name: "b",
-		},
-		{
-			ID:   5,
-			Name: "r",
-		},
-	}
-
-	err := sortObjects(&objects, "name", false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expected := objects[0].Name == "a" &&
-		objects[1].Name == "b" &&
-		objects[2].Name == "d" &&
-		objects[3].Name == "r" &&
-		objects[4].Name == "x"
-
-	if !expected {
-		t.Fatal(fmt.Errorf("objects not sorted"))
-	}
-}
-
 func TestGetFieldNameByTag(t *testing.T) {
 	f, err := getFieldNameByTagSuffix(reflect.TypeOf(test1{}), "db", "first_name")
 	if err != nil {
@@ -144,110 +101,6 @@ func TestGetFieldNameByTag2(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	if f != "ID" {
-		t.Fatal()
-	}
-}
-
-func TestIsObjectInUse(t *testing.T) {
-	store := CreateTestStore()
-
-	proj, err := store.CreateProject(db.Project{
-		Name: "test",
-	})
-
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	_, err = store.CreateTemplate(db.Template{
-		Name:          "Test",
-		Playbook:      "test.yml",
-		ProjectID:     proj.ID,
-		InventoryID:   &inventoryID,
-		EnvironmentID: &environmentID,
-	})
-
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	isUse, err := store.isObjectInUse(proj.ID, db.InventoryProps, intObjectID(10), db.TemplateProps)
-
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	if !isUse {
-		t.Fatal()
-	}
-
-}
-
-func TestIsObjectInUse_Environment(t *testing.T) {
-	store := CreateTestStore()
-
-	proj, err := store.CreateProject(db.Project{
-		Name: "test",
-	})
-
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	_, err = store.CreateTemplate(db.Template{
-		Name:          "Test",
-		Playbook:      "test.yml",
-		ProjectID:     proj.ID,
-		InventoryID:   &inventoryID,
-		EnvironmentID: &environmentID,
-	})
-
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	isUse, err := store.isObjectInUse(proj.ID, db.EnvironmentProps, intObjectID(10), db.TemplateProps)
-
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	if !isUse {
-		t.Fatal()
-	}
-
-}
-
-func TestIsObjectInUse_EnvironmentNil(t *testing.T) {
-	store := CreateTestStore()
-
-	proj, err := store.CreateProject(db.Project{
-		Name: "test",
-	})
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = store.CreateTemplate(db.Template{
-		Name:          "Test",
-		Playbook:      "test.yml",
-		ProjectID:     proj.ID,
-		InventoryID:   &inventoryID,
-		EnvironmentID: nil,
-	})
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	isUse, err := store.isObjectInUse(proj.ID, db.EnvironmentProps, intObjectID(10), db.TemplateProps)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if isUse {
 		t.Fatal()
 	}
 }
@@ -320,64 +173,5 @@ func TestBoltDb_CreateAPIToken(t *testing.T) {
 	_, err = store.GetAPIToken(token.ID)
 	if err == nil {
 		t.Fatal("Token not deleted")
-	}
-}
-
-func TestBoltDb_GetRepositoryRefs(t *testing.T) {
-	store := CreateTestStore()
-
-	repo1, err := store.CreateRepository(db.Repository{
-		Name:      "repo1",
-		GitURL:    "git@example.com/repo1",
-		GitBranch: "master",
-		ProjectID: 1,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = store.CreateTemplate(db.Template{
-		Type:          db.TemplateBuild,
-		Name:          "tpl1",
-		Playbook:      "build.yml",
-		RepositoryID:  repo1.ID,
-		ProjectID:     1,
-		InventoryID:   &inventoryID,
-		EnvironmentID: &environmentID,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	tpl2, err := store.CreateTemplate(db.Template{
-		Type:          db.TemplateBuild,
-		Name:          "tpl12",
-		Playbook:      "build.yml",
-		ProjectID:     1,
-		InventoryID:   &inventoryID,
-		EnvironmentID: &environmentID,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = store.CreateSchedule(db.Schedule{
-		CronFormat:   "* * * * *",
-		TemplateID:   tpl2.ID,
-		ProjectID:    1,
-		RepositoryID: &repo1.ID,
-	})
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	refs, err := store.GetRepositoryRefs(1, repo1.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(refs.Templates) != 2 {
-		t.Fatal()
 	}
 }

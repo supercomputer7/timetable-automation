@@ -25,18 +25,11 @@ type EventObjectType string
 
 const (
 	EventTask                    EventObjectType = "task"
-	EventEnvironment             EventObjectType = "environment"
-	EventInventory               EventObjectType = "inventory"
-	EventKey                     EventObjectType = "key"
 	EventProject                 EventObjectType = "project"
-	EventRepository              EventObjectType = "repository"
 	EventSchedule                EventObjectType = "schedule"
 	EventTemplate                EventObjectType = "template"
 	EventUser                    EventObjectType = "user"
 	EventView                    EventObjectType = "view"
-	EventIntegration             EventObjectType = "integration"
-	EventIntegrationExtractValue EventObjectType = "integrationextractvalue"
-	EventIntegrationMatcher      EventObjectType = "integrationmatcher"
 )
 
 func FillEvents(d Store, events []Event) (err error) {

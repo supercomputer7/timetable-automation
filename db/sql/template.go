@@ -16,21 +16,17 @@ func (d *SqlDb) CreateTemplate(template db.Template) (newTemplate db.Template, e
 
 	insertID, err := d.insert(
 		"id",
-		"insert into project__template (project_id, inventory_id, repository_id, environment_id, "+
+		"insert into project__template (project_id, "+
 			"name, playbook, arguments, allow_override_args_in_task, description, `type`, start_version,"+
 			"build_template_id, view_id, autorun, survey_vars, suppress_success_alerts, app)"+
 			"values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		template.ProjectID,
-		template.InventoryID,
-		template.RepositoryID,
-		template.EnvironmentID,
 		template.Name,
 		template.Playbook,
 		template.Arguments,
 		template.AllowOverrideArgsInTask,
 		template.Description,
 		template.Type,
-		template.StartVersion,
 		template.BuildTemplateID,
 		template.ViewID,
 		template.Autorun,
@@ -38,11 +34,6 @@ func (d *SqlDb) CreateTemplate(template db.Template) (newTemplate db.Template, e
 		template.SuppressSuccessAlerts,
 		template.App)
 
-	if err != nil {
-		return
-	}
-
-	err = d.UpdateTemplateVaults(template.ProjectID, insertID, template.Vaults)
 	if err != nil {
 		return
 	}
@@ -67,9 +58,6 @@ func (d *SqlDb) UpdateTemplate(template db.Template) error {
 	}
 
 	_, err = d.exec("update project__template set "+
-		"inventory_id=?, "+
-		"repository_id=?, "+
-		"environment_id=?, "+
 		"name=?, "+
 		"playbook=?, "+
 		"arguments=?, "+
@@ -84,16 +72,12 @@ func (d *SqlDb) UpdateTemplate(template db.Template) error {
 		"suppress_success_alerts=?, "+
 		"app=? "+
 		"where id=? and project_id=?",
-		template.InventoryID,
-		template.RepositoryID,
-		template.EnvironmentID,
 		template.Name,
 		template.Playbook,
 		template.Arguments,
 		template.AllowOverrideArgsInTask,
 		template.Description,
 		template.Type,
-		template.StartVersion,
 		template.BuildTemplateID,
 		template.ViewID,
 		template.Autorun,
@@ -107,9 +91,7 @@ func (d *SqlDb) UpdateTemplate(template db.Template) error {
 		return err
 	}
 
-	err = d.UpdateTemplateVaults(template.ProjectID, template.ID, template.Vaults)
-
-	return err
+	return nil
 }
 
 func (d *SqlDb) GetTemplates(projectID int, filter db.TemplateFilter, params db.RetrieveQueryParams) (templates []db.Template, err error) {
@@ -123,9 +105,6 @@ func (d *SqlDb) GetTemplates(projectID int, filter db.TemplateFilter, params db.
 
 	q := squirrel.Select("pt.id",
 		"pt.project_id",
-		"pt.inventory_id",
-		"pt.repository_id",
-		"pt.environment_id",
 		"pt.name",
 		"pt.playbook",
 		"pt.arguments",
@@ -161,18 +140,6 @@ func (d *SqlDb) GetTemplates(projectID int, filter db.TemplateFilter, params db.
 	case "name", "playbook":
 		q = q.Where("pt.project_id=?", projectID).
 			OrderBy("pt." + params.SortBy + " " + order)
-	case "inventory":
-		q = q.LeftJoin("project__inventory pi ON (pt.inventory_id = pi.id)").
-			Where("pt.project_id=?", projectID).
-			OrderBy("pi.name " + order)
-	case "environment":
-		q = q.LeftJoin("project__environment pe ON (pt.environment_id = pe.id)").
-			Where("pt.project_id=?", projectID).
-			OrderBy("pe.name " + order)
-	case "repository":
-		q = q.LeftJoin("project__repository pr ON (pt.repository_id = pr.id)").
-			Where("pt.project_id=?", projectID).
-			OrderBy("pr.name " + order)
 	default:
 		q = q.Where("pt.project_id=?", projectID).
 			OrderBy("pt.name " + order)
@@ -213,19 +180,10 @@ func (d *SqlDb) GetTemplates(projectID int, filter db.TemplateFilter, params db.
 		if tpl.LastTaskID != nil {
 			for _, tsk := range tasks {
 				if tsk.ID == *tpl.LastTaskID {
-					err = tsk.Fill(d)
-					if err != nil {
-						return
-					}
 					template.LastTask = &tsk
 					break
 				}
 			}
-		}
-
-		template.Vaults, err = d.GetTemplateVaults(projectID, template.ID)
-		if err != nil {
-			return
 		}
 
 		templates = append(templates, template)

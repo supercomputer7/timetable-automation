@@ -14,7 +14,6 @@ import (
 type ShellApp struct {
 	Logger     task_logger.Logger
 	Template   db.Template
-	Repository db.Repository
 	App        db.TemplateApp
 	reader     bashReader
 }
@@ -42,7 +41,8 @@ func (r *bashReader) Read(p []byte) (n int, err error) {
 
 func (t *ShellApp) makeCmd(command string, args []string, environmentVars *[]string) *exec.Cmd {
 	cmd := exec.Command(command, args...) //nolint: gas
-	cmd.Dir = t.GetFullPath()
+	//cmd.Dir = t.GetFullPath()
+	cmd.Dir = "/"
 
 	cmd.Env = removeSensitiveEnvs(os.Environ())
 	cmd.Env = append(cmd.Env, fmt.Sprintf("HOME=%s", util.Config.TmpPath))
@@ -59,11 +59,6 @@ func (t *ShellApp) runCmd(command string, args []string) error {
 	cmd := t.makeCmd(command, args, nil)
 	t.Logger.LogCmd(cmd)
 	return cmd.Run()
-}
-
-func (t *ShellApp) GetFullPath() (path string) {
-	path = t.Repository.GetFullPath(t.Template.ID)
-	return
 }
 
 func (t *ShellApp) SetLogger(logger task_logger.Logger) task_logger.Logger {

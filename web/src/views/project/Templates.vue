@@ -201,18 +201,6 @@
         </div>
       </template>
 
-      <template v-slot:item.inventory_id="{ item }">
-        {{ (inventory.find((x) => x.id === item.inventory_id) || {name: '—'}).name }}
-      </template>
-
-      <template v-slot:item.environment_id="{ item }">
-        {{ (environment.find((x) => x.id === item.environment_id) || {name: '—'}).name }}
-      </template>
-
-      <template v-slot:item.repository_id="{ item }">
-        {{ repositories.find((x) => x.id === item.repository_id).name }}
-      </template>
-
       <template v-slot:item.actions="{ item }">
         <v-btn text class="pl-1 pr-2" @click="createTask(item.id)">
           <v-icon class="pr-1">mdi-play</v-icon>
@@ -288,16 +276,11 @@ export default {
   mixins: [ItemListPageBase, AppsMixin],
   async created() {
     socket.addListener((data) => this.onWebsocketDataReceived(data));
-
-    await this.loadData();
   },
   data() {
     return {
       TEMPLATE_TYPE_ICONS,
       TEMPLATE_TYPE_ACTION_TITLES,
-      inventory: null,
-      environment: null,
-      repositories: null,
       newTaskDialog: null,
       settingsSheet: null,
       filteredHeaders: [],
@@ -341,9 +324,6 @@ export default {
 
     isLoaded() {
       return this.items
-        && this.inventory
-        && this.environment
-        && this.repositories
         && this.views
         && this.isAppsLoaded;
     },
@@ -461,21 +441,6 @@ export default {
           sortable: false,
         },
         {
-          text: this.$i18n.t('inventory'),
-          value: 'inventory_id',
-          sortable: false,
-        },
-        {
-          text: this.$i18n.t('environment'),
-          value: 'environment_id',
-          sortable: false,
-        },
-        {
-          text: this.$i18n.t('repository2'),
-          value: 'repository_id',
-          sortable: false,
-        },
-        {
           text: this.$i18n.t('actions'),
           value: 'actions',
           sortable: false,
@@ -488,26 +453,6 @@ export default {
       return this.viewId == null
         ? `/api/project/${this.projectId}/templates`
         : `/api/project/${this.projectId}/views/${this.viewId}/templates`;
-    },
-
-    async loadData() {
-      this.inventory = (await axios({
-        method: 'get',
-        url: `/api/project/${this.projectId}/inventory`,
-        responseType: 'json',
-      })).data;
-
-      this.environment = (await axios({
-        method: 'get',
-        url: `/api/project/${this.projectId}/environment`,
-        responseType: 'json',
-      })).data;
-
-      this.repositories = (await axios({
-        method: 'get',
-        url: `/api/project/${this.projectId}/repositories`,
-        responseType: 'json',
-      })).data;
     },
 
     onTableSettingsChange({ headers }) {

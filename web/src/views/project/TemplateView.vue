@@ -133,52 +133,6 @@
             </v-list-item>
           </v-list>
         </v-col>
-        <v-col>
-          <v-list subheader dense>
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-monitor</v-icon>
-              </v-list-item-icon>
-
-              <v-list-item-content>
-                <v-list-item-title>{{ $t('inventory') }}</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ (inventory.find((x) => x.id === item.inventory_id) || {name: '—'}).name }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-col>
-        <v-col>
-          <v-list subheader dense>
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-code-braces</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ $t('environment') }}</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ environment.find((x) => x.id === item.environment_id).name }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-col>
-        <v-col>
-          <v-list subheader dense>
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-git</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ $t('repository2') }}</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ repositories.find((x) => x.id === item.repository_id).name }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-col>
       </v-row>
     </v-container>
 
@@ -224,9 +178,6 @@ export default {
   data() {
     return {
       item: null,
-      inventory: null,
-      environment: null,
-      repositories: null,
       deleteDialog: null,
       editDialog: null,
       copyDialog: null,
@@ -262,10 +213,7 @@ export default {
       return this.itemId === 'new';
     },
     isLoaded() {
-      return this.item
-        && this.inventory
-        && this.environment
-        && this.repositories;
+      return this.item;
     },
   },
 
@@ -341,24 +289,6 @@ export default {
       this.item = (await axios({
         method: 'get',
         url: `/api/project/${this.projectId}/templates/${this.itemId}`,
-        responseType: 'json',
-      })).data;
-
-      this.inventory = (await axios({
-        method: 'get',
-        url: `/api/project/${this.projectId}/inventory`,
-        responseType: 'json',
-      })).data;
-
-      this.environment = (await axios({
-        method: 'get',
-        url: `/api/project/${this.projectId}/environment`,
-        responseType: 'json',
-      })).data;
-
-      this.repositories = (await axios({
-        method: 'get',
-        url: `/api/project/${this.projectId}/repositories`,
         responseType: 'json',
       })).data;
     },

@@ -20,35 +20,3 @@ func (e Template) GetID() int {
 func (e Template) GetName() string {
 	return e.Name
 }
-
-func (e Inventory) GetID() int {
-	return e.ID
-}
-
-func (e Inventory) GetName() string {
-	return e.Name
-}
-
-func (e AccessKey) GetID() int {
-	return e.ID
-}
-
-func (e AccessKey) GetName() string {
-	return e.Name
-}
-
-func (e Repository) GetID() int {
-	return e.ID
-}
-
-func (e Repository) GetName() string {
-	return e.Name
-}
-
-func (e Environment) GetID() int {
-	return e.ID
-}
-
-func (e Environment) GetName() string {
-	return e.Name
-}

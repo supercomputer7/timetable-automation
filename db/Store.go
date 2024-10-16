@@ -104,78 +104,12 @@ type Store interface {
 	// IsInitialized indicates is database already initialized, or it is empty.
 	// The method is useful for creating required entities in database during first run.
 	IsInitialized() (bool, error)
-	// IsMigrationApplied queries the database to see if a migration table with
-	// this version id exists already
-	IsMigrationApplied(version Migration) (bool, error)
-	// ApplyMigration runs executes a database migration
-	ApplyMigration(version Migration) error
-	// TryRollbackMigration attempts to roll back the database to an earlier version
-	// if a rollback exists
-	TryRollbackMigration(version Migration)
 
 	GetOptions(params RetrieveQueryParams) (map[string]string, error)
 	GetOption(key string) (string, error)
 	SetOption(key string, value string) error
 	DeleteOption(key string) error
 	DeleteOptions(filter string) error
-
-	GetEnvironment(projectID int, environmentID int) (Environment, error)
-	GetEnvironmentRefs(projectID int, environmentID int) (ObjectReferrers, error)
-	GetEnvironments(projectID int, params RetrieveQueryParams) ([]Environment, error)
-	UpdateEnvironment(env Environment) error
-	CreateEnvironment(env Environment) (Environment, error)
-	DeleteEnvironment(projectID int, templateID int) error
-	GetEnvironmentSecrets(projectID int, environmentID int) ([]AccessKey, error)
-
-	GetInventory(projectID int, inventoryID int) (Inventory, error)
-	GetInventoryRefs(projectID int, inventoryID int) (ObjectReferrers, error)
-	GetInventories(projectID int, params RetrieveQueryParams) ([]Inventory, error)
-	UpdateInventory(inventory Inventory) error
-	CreateInventory(inventory Inventory) (Inventory, error)
-	DeleteInventory(projectID int, inventoryID int) error
-
-	GetRepository(projectID int, repositoryID int) (Repository, error)
-	GetRepositoryRefs(projectID int, repositoryID int) (ObjectReferrers, error)
-	GetRepositories(projectID int, params RetrieveQueryParams) ([]Repository, error)
-	UpdateRepository(repository Repository) error
-	CreateRepository(repository Repository) (Repository, error)
-	DeleteRepository(projectID int, repositoryID int) error
-
-	GetAccessKey(projectID int, accessKeyID int) (AccessKey, error)
-	GetAccessKeyRefs(projectID int, accessKeyID int) (ObjectReferrers, error)
-	GetAccessKeys(projectID int, params RetrieveQueryParams) ([]AccessKey, error)
-	RekeyAccessKeys(oldKey string) error
-
-	CreateIntegration(integration Integration) (newIntegration Integration, err error)
-	GetIntegrations(projectID int, params RetrieveQueryParams) ([]Integration, error)
-	GetIntegration(projectID int, integrationID int) (integration Integration, err error)
-	UpdateIntegration(integration Integration) error
-	GetIntegrationRefs(projectID int, integrationID int) (IntegrationReferrers, error)
-	DeleteIntegration(projectID int, integrationID int) error
-
-	CreateIntegrationExtractValue(projectId int, value IntegrationExtractValue) (newValue IntegrationExtractValue, err error)
-	GetIntegrationExtractValues(projectID int, params RetrieveQueryParams, integrationID int) ([]IntegrationExtractValue, error)
-	GetIntegrationExtractValue(projectID int, valueID int, integrationID int) (value IntegrationExtractValue, err error)
-	UpdateIntegrationExtractValue(projectID int, integrationExtractValue IntegrationExtractValue) error
-	GetIntegrationExtractValueRefs(projectID int, valueID int, integrationID int) (IntegrationExtractorChildReferrers, error)
-	DeleteIntegrationExtractValue(projectID int, valueID int, integrationID int) error
-
-	CreateIntegrationMatcher(projectID int, matcher IntegrationMatcher) (newMatcher IntegrationMatcher, err error)
-	GetIntegrationMatchers(projectID int, params RetrieveQueryParams, integrationID int) ([]IntegrationMatcher, error)
-	GetIntegrationMatcher(projectID int, matcherID int, integrationID int) (matcher IntegrationMatcher, err error)
-	UpdateIntegrationMatcher(projectID int, integrationMatcher IntegrationMatcher) error
-	GetIntegrationMatcherRefs(projectID int, matcherID int, integrationID int) (IntegrationExtractorChildReferrers, error)
-	DeleteIntegrationMatcher(projectID int, matcherID int, integrationID int) error
-
-	CreateIntegrationAlias(alias IntegrationAlias) (IntegrationAlias, error)
-	GetIntegrationAliases(projectID int, integrationID *int) ([]IntegrationAlias, error)
-	GetIntegrationsByAlias(alias string) ([]Integration, error)
-	DeleteIntegrationAlias(projectID int, aliasID int) error
-	GetAllSearchableIntegrations() ([]Integration, error)
-
-	UpdateAccessKey(accessKey AccessKey) error
-	CreateAccessKey(accessKey AccessKey) (AccessKey, error)
-	DeleteAccessKey(projectID int, accessKeyID int) error
 
 	GetUserCount() (int, error)
 	GetUsers(params RetrieveQueryParams) ([]User, error)
@@ -209,7 +143,6 @@ type Store interface {
 	GetTemplateSchedules(projectID int, templateID int) ([]Schedule, error)
 	CreateSchedule(schedule Schedule) (Schedule, error)
 	UpdateSchedule(schedule Schedule) error
-	SetScheduleCommitHash(projectID int, scheduleID int, hash string) error
 	SetScheduleActive(projectID int, scheduleID int, active bool) error
 	GetSchedule(projectID int, scheduleID int) (Schedule, error)
 	DeleteSchedule(projectID int, scheduleID int) error
@@ -264,76 +197,6 @@ type Store interface {
 	DeleteGlobalRunner(runnerID int) error
 	UpdateRunner(runner Runner) error
 	CreateRunner(runner Runner) (Runner, error)
-
-	GetTemplateVaults(projectID int, templateID int) ([]TemplateVault, error)
-	CreateTemplateVault(vault TemplateVault) (TemplateVault, error)
-	UpdateTemplateVaults(projectID int, templateID int, vaults []TemplateVault) error
-}
-
-var AccessKeyProps = ObjectProps{
-	TableName:             "access_key",
-	Type:                  reflect.TypeOf(AccessKey{}),
-	PrimaryColumnName:     "id",
-	ReferringColumnSuffix: "key_id",
-	SortableColumns:       []string{"name", "type"},
-	DefaultSortingColumn:  "name",
-}
-
-var IntegrationProps = ObjectProps{
-	TableName:             "project__integration",
-	Type:                  reflect.TypeOf(Integration{}),
-	PrimaryColumnName:     "id",
-	ReferringColumnSuffix: "integration_id",
-	SortableColumns:       []string{"name"},
-	DefaultSortingColumn:  "name",
-}
-
-var IntegrationExtractValueProps = ObjectProps{
-	TableName:            "project__integration_extract_value",
-	Type:                 reflect.TypeOf(IntegrationExtractValue{}),
-	PrimaryColumnName:    "id",
-	SortableColumns:      []string{"name"},
-	DefaultSortingColumn: "name",
-}
-
-var IntegrationMatcherProps = ObjectProps{
-	TableName:            "project__integration_matcher",
-	Type:                 reflect.TypeOf(IntegrationMatcher{}),
-	PrimaryColumnName:    "id",
-	SortableColumns:      []string{"name"},
-	DefaultSortingColumn: "name",
-}
-
-var IntegrationAliasProps = ObjectProps{
-	TableName:         "project__integration_alias",
-	Type:              reflect.TypeOf(IntegrationAlias{}),
-	PrimaryColumnName: "id",
-}
-
-var EnvironmentProps = ObjectProps{
-	TableName:             "project__environment",
-	Type:                  reflect.TypeOf(Environment{}),
-	PrimaryColumnName:     "id",
-	ReferringColumnSuffix: "environment_id",
-	SortableColumns:       []string{"name"},
-	DefaultSortingColumn:  "name",
-}
-
-var InventoryProps = ObjectProps{
-	TableName:             "project__inventory",
-	Type:                  reflect.TypeOf(Inventory{}),
-	PrimaryColumnName:     "id",
-	ReferringColumnSuffix: "inventory_id",
-	SortableColumns:       []string{"name"},
-	DefaultSortingColumn:  "name",
-}
-
-var RepositoryProps = ObjectProps{
-	TableName:             "project__repository",
-	Type:                  reflect.TypeOf(Repository{}),
-	PrimaryColumnName:     "id",
-	ReferringColumnSuffix: "repository_id",
-	DefaultSortingColumn:  "name",
 }
 
 var TemplateProps = ObjectProps{
@@ -424,13 +287,6 @@ var OptionProps = ObjectProps{
 	IsGlobal:          true,
 }
 
-var TemplateVaultProps = ObjectProps{
-	TableName:             "project__template_vault",
-	Type:                  reflect.TypeOf(TemplateVault{}),
-	PrimaryColumnName:     "id",
-	ReferringColumnSuffix: "template_id",
-}
-
 func (p ObjectProps) GetReferringFieldsFrom(t reflect.Type) (fields []string, err error) {
 	n := t.NumField()
 	for i := 0; i < n; i++ {
@@ -465,36 +321,6 @@ func StoreSession(store Store, token string, callback func()) {
 	if !store.PermanentConnection() {
 		store.Close(token)
 	}
-}
-
-func ValidateRepository(store Store, repo *Repository) (err error) {
-	_, err = store.GetAccessKey(repo.ProjectID, repo.SSHKeyID)
-
-	return
-}
-
-func ValidateInventory(store Store, inventory *Inventory) (err error) {
-	if inventory.SSHKeyID != nil {
-		_, err = store.GetAccessKey(inventory.ProjectID, *inventory.SSHKeyID)
-	}
-
-	if err != nil {
-		return
-	}
-
-	if inventory.BecomeKeyID != nil {
-		_, err = store.GetAccessKey(inventory.ProjectID, *inventory.BecomeKeyID)
-	}
-
-	if err != nil {
-		return
-	}
-
-	if inventory.HolderID != nil {
-		_, err = store.GetTemplate(inventory.ProjectID, *inventory.HolderID)
-	}
-
-	return
 }
 
 type MapStringAnyField map[string]interface{}

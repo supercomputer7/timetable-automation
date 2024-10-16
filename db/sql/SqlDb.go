@@ -30,7 +30,6 @@ create table ` + "`migrations`" + ` (
 );
 `
 
-//go:embed migrations/*.sql
 var dbAssets embed.FS
 
 func containsStr(arr []string, str string) bool {
@@ -317,11 +316,7 @@ func (d *SqlDb) Connect(token string) {
 	d.sql = &gorp.DbMap{Db: sqlDb, Dialect: dialect}
 
 	d.sql.AddTableWithName(db.APIToken{}, "user__token").SetKeys(false, "id")
-	d.sql.AddTableWithName(db.AccessKey{}, "access_key").SetKeys(true, "id")
-	d.sql.AddTableWithName(db.Environment{}, "project__environment").SetKeys(true, "id")
-	d.sql.AddTableWithName(db.Inventory{}, "project__inventory").SetKeys(true, "id")
 	d.sql.AddTableWithName(db.Project{}, "project").SetKeys(true, "id")
-	d.sql.AddTableWithName(db.Repository{}, "project__repository").SetKeys(true, "id")
 	d.sql.AddTableWithName(db.Task{}, "task").SetKeys(true, "id")
 	d.sql.AddTableWithName(db.TaskOutput{}, "task__output").SetUniqueTogether("task_id", "time")
 	d.sql.AddTableWithName(db.Template{}, "project__template").SetKeys(true, "id")
@@ -359,16 +354,6 @@ func getSqlForTable(tableName string, p db.RetrieveQueryParams) (string, []inter
 
 func (d *SqlDb) getObjectRefs(projectID int, objectProps db.ObjectProps, objectID int) (refs db.ObjectReferrers, err error) {
 	refs.Templates, err = d.getObjectRefsFrom(projectID, objectProps, objectID, db.TemplateProps)
-	if err != nil {
-		return
-	}
-
-	refs.Repositories, err = d.getObjectRefsFrom(projectID, objectProps, objectID, db.RepositoryProps)
-	if err != nil {
-		return
-	}
-
-	refs.Inventories, err = d.getObjectRefsFrom(projectID, objectProps, objectID, db.InventoryProps)
 	if err != nil {
 		return
 	}
@@ -681,8 +666,6 @@ func (d *SqlDb) GetAllObjects(props db.ObjectProps) (objects interface{}, err er
 //
 //	d.GetReferencesForForeignKey(db.ProjectProps, id, map[string]db.ObjectProps{
 //	  'Templates': db.TemplateProps,
-//	  'Inventories': db.InventoryProps,
-//	  'Repositories': db.RepositoryProps
 //	}, &referrerCollection)
 //
 // //

@@ -23,9 +23,6 @@ type Job interface {
 type TaskRunner struct {
 	Task        db.Task
 	Template    db.Template
-	Inventory   db.Inventory
-	Repository  db.Repository
-	Environment db.Environment
 
 	users     []int
 	alert     bool
@@ -61,7 +58,7 @@ func (t *TaskRunner) saveStatus() {
 			"task_id":     t.Task.ID,
 			"template_id": t.Task.TemplateID,
 			"project_id":  t.Task.ProjectID,
-			"version":     t.Task.Version,
+			//"version":     t.Task.Version,
 		})
 
 		util.LogPanic(err)
@@ -150,10 +147,10 @@ func (t *TaskRunner) run() {
 		}
 	}
 
-	if t.Template.Type != db.TemplateTask {
-		incomingVersion = t.Task.GetIncomingVersion(t.pool.store)
+	// if t.Template.Type != db.TemplateTask {
+	// 	incomingVersion = t.Task.GetIncomingVersion(t.pool.store)
 
-	}
+	// }
 
 	err = t.job.Run(username, incomingVersion)
 
@@ -180,7 +177,6 @@ func (t *TaskRunner) run() {
 		_, err = t.pool.AddTask(db.Task{
 			TemplateID:  tpl.ID,
 			ProjectID:   tpl.ProjectID,
-			BuildTaskID: &t.Task.ID,
 		}, nil, tpl.ProjectID)
 		if err != nil {
 			t.Log("Running app failed: " + err.Error())
@@ -246,78 +242,6 @@ func (t *TaskRunner) populateDetails() error {
 	t.users = []int{}
 	for userID := range users {
 		t.users = append(t.users, userID)
-	}
-
-	// get inventory
-	if t.Task.InventoryID != nil {
-		t.Inventory, err = t.pool.store.GetInventory(t.Template.ProjectID, *t.Task.InventoryID)
-		if err != nil {
-			if t.Template.InventoryID != nil {
-				t.Inventory, err = t.pool.store.GetInventory(t.Template.ProjectID, *t.Template.InventoryID)
-				if err != nil {
-					return t.prepareError(err, "Template Inventory not found!")
-				}
-			}
-		}
-	} else {
-		if t.Template.InventoryID != nil {
-			t.Inventory, err = t.pool.store.GetInventory(t.Template.ProjectID, *t.Template.InventoryID)
-			if err != nil {
-				return t.prepareError(err, "Template Inventory not found!")
-			}
-		}
-	}
-
-	// get repository
-	t.Repository, err = t.pool.store.GetRepository(t.Template.ProjectID, t.Template.RepositoryID)
-
-	if err != nil {
-		return err
-	}
-
-	err = t.Repository.SSHKey.DeserializeSecret()
-	if err != nil {
-		return err
-	}
-
-	// get environment
-	if t.Template.EnvironmentID != nil {
-		t.Environment, err = t.pool.store.GetEnvironment(t.Template.ProjectID, *t.Template.EnvironmentID)
-		if err != nil {
-			return err
-		}
-
-		if err = db.FillEnvironmentSecrets(t.pool.store, &t.Environment, true); err != nil {
-			return err
-		}
-	}
-
-	if t.Task.Environment != "" {
-		environment := make(map[string]interface{})
-		if t.Environment.JSON != "" {
-			err = json.Unmarshal([]byte(t.Task.Environment), &environment)
-			if err != nil {
-				return err
-			}
-		}
-
-		taskEnvironment := make(map[string]interface{})
-		err = json.Unmarshal([]byte(t.Environment.JSON), &taskEnvironment)
-		if err != nil {
-			return err
-		}
-
-		for k, v := range taskEnvironment {
-			environment[k] = v
-		}
-
-		var ev []byte
-		ev, err = json.Marshal(environment)
-		if err != nil {
-			return err
-		}
-
-		t.Environment.JSON = string(ev)
 	}
 
 	return nil

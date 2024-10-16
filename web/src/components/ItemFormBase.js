@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getErrorMessage } from '@/lib/error';
 
 /**
- * Most of Semaphore entities (keys, environments, etc) have similar REST API for
+ * Most of Semaphore entities have similar REST API for
  * access and manipulation.
  * This class presents mixin for creating editing form for such entities.
  * This class should be used as mixin in Vue-template.

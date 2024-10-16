@@ -37,50 +37,10 @@ import TemplateForm from './TemplateForm.vue';
 import EditDialog from './EditDialog.vue';
 import AppsMixin from './AppsMixin';
 
-const ANSIBLE_FIELDS = {
-  playbook: {
-    label: 'playbookFilename',
-  },
-  inventory: {
-    label: 'inventory2',
-  },
-  repository: {
-    label: 'repository',
-  },
-  environment: {
-    label: 'environment3',
-  },
-  vault: {
-    label: 'vaultPassword2',
-  },
-};
-
-const TERRAFORM_FIELDS = {
-  ...ANSIBLE_FIELDS,
-  playbook: {
-    label: 'Subdirectory path (Optional)',
-    optional: true,
-  },
-  inventory: {
-    label: 'Default Workspace',
-  },
-  vault: undefined,
-};
-
 const UNKNOWN_APP_FIELDS = {
-  ...ANSIBLE_FIELDS,
   playbook: {
     label: 'Script Filename *',
   },
-  inventory: undefined,
-  vault: undefined,
-};
-
-const APP_FIELDS = {
-  '': ANSIBLE_FIELDS,
-  ansible: ANSIBLE_FIELDS,
-  terraform: TERRAFORM_FIELDS,
-  tofu: TERRAFORM_FIELDS,
 };
 
 export default {
@@ -107,7 +67,7 @@ export default {
 
   computed: {
     fields() {
-      return APP_FIELDS[this.itemApp] || UNKNOWN_APP_FIELDS;
+      return UNKNOWN_APP_FIELDS;
     },
   },
 

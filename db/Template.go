@@ -61,9 +61,6 @@ type Template struct {
 	ID int `db:"id" json:"id" backup:"-"`
 
 	ProjectID     int  `db:"project_id" json:"project_id" backup:"-"`
-	InventoryID   *int `db:"inventory_id" json:"inventory_id" backup:"-"`
-	RepositoryID  int  `db:"repository_id" json:"repository_id" backup:"-"`
-	EnvironmentID *int `db:"environment_id" json:"environment_id" backup:"-"`
 
 	// Name as described in https://github.com/ansible-semaphore/semaphore/issues/188
 	Name string `db:"name" json:"name"`
@@ -76,10 +73,7 @@ type Template struct {
 
 	Description *string `db:"description" json:"description"`
 
-	Vaults []TemplateVault `db:"-" json:"vaults" backup:"-"`
-
 	Type            TemplateType `db:"type" json:"type"`
-	StartVersion    *string      `db:"start_version" json:"start_version"`
 	BuildTemplateID *int         `db:"build_template_id" json:"build_template_id" backup:"-"`
 
 	ViewID *int `db:"view_id" json:"view_id" backup:"-"`
@@ -102,18 +96,11 @@ type Template struct {
 }
 
 func (tpl *Template) Validate() error {
-	switch tpl.App {
-	case AppAnsible:
-		if tpl.InventoryID == nil {
-			return &ValidationError{"template inventory can not be empty"}
-		}
-	}
-
 	if tpl.Name == "" {
 		return &ValidationError{"template name can not be empty"}
 	}
 
-	if !tpl.App.IsTerraform() && tpl.Playbook == "" {
+	if tpl.Playbook == "" {
 		return &ValidationError{"template playbook can not be empty"}
 	}
 
@@ -127,13 +114,6 @@ func (tpl *Template) Validate() error {
 }
 
 func FillTemplate(d Store, template *Template) (err error) {
-	var vaults []TemplateVault
-	vaults, err = d.GetTemplateVaults(template.ProjectID, template.ID)
-	if err != nil {
-		return
-	}
-	template.Vaults = vaults
-
 	var tasks []TaskWithTpl
 	tasks, err = d.GetTemplateTasks(template.ProjectID, template.ID, RetrieveQueryParams{Count: 1})
 	if err != nil {

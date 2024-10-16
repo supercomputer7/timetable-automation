@@ -11,8 +11,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ansible-semaphore/semaphore/db"
-
 	"github.com/ansible-semaphore/semaphore/db_lib"
 	"github.com/ansible-semaphore/semaphore/pkg/task_logger"
 	"github.com/ansible-semaphore/semaphore/services/tasks"
@@ -460,8 +458,6 @@ func (p *JobPool) checkNewJobs() {
 			continue
 		}
 
-		newJob.Inventory.Repository = newJob.InventoryRepository
-
 		taskRunner := job{
 			username:        newJob.Username,
 			incomingVersion: newJob.IncomingVersion,
@@ -469,40 +465,10 @@ func (p *JobPool) checkNewJobs() {
 			job: &tasks.LocalJob{
 				Task:        newJob.Task,
 				Template:    newJob.Template,
-				Inventory:   newJob.Inventory,
-				Repository:  newJob.Repository,
-				Environment: newJob.Environment,
 				App: db_lib.CreateApp(
 					newJob.Template,
-					newJob.Repository,
-					newJob.Inventory,
 					nil),
 			},
-		}
-
-		taskRunner.job.Repository.SSHKey = response.AccessKeys[taskRunner.job.Repository.SSHKeyID]
-
-		if taskRunner.job.Inventory.SSHKeyID != nil {
-			taskRunner.job.Inventory.SSHKey = response.AccessKeys[*taskRunner.job.Inventory.SSHKeyID]
-		}
-
-		if taskRunner.job.Inventory.BecomeKeyID != nil {
-			taskRunner.job.Inventory.BecomeKey = response.AccessKeys[*taskRunner.job.Inventory.BecomeKeyID]
-		}
-
-		var vaults []db.TemplateVault
-		if taskRunner.job.Template.Vaults != nil {
-			for _, vault := range taskRunner.job.Template.Vaults {
-				vault := vault
-				key := response.AccessKeys[vault.VaultKeyID]
-				vault.Vault = &key
-				vaults = append(vaults, vault)
-			}
-		}
-		taskRunner.job.Template.Vaults = vaults
-
-		if taskRunner.job.Inventory.RepositoryID != nil {
-			taskRunner.job.Inventory.Repository.SSHKey = response.AccessKeys[taskRunner.job.Inventory.Repository.SSHKeyID]
 		}
 
 		p.queue = append(p.queue, &taskRunner)

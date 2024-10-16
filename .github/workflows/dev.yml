@@ -77,9 +77,6 @@ jobs:
             }
           EOF
 
-      - name: Migrate database
-        run: |
-          chmod +x ./semaphore && ./semaphore migrate --config config.json
 
   migrate-mysql:
     runs-on: ubuntu-latest
@@ -124,10 +121,6 @@ jobs:
             }
           EOF
 
-      - name: Migrate database
-        run: |
-          chmod +x ./semaphore && ./semaphore migrate --config config.json
-
   migrate-mariadb:
     runs-on: ubuntu-latest
 
@@ -170,10 +163,6 @@ jobs:
               "email_alert": false
             }
           EOF
-
-      - name: Migrate database
-        run: |
-          chmod +x ./semaphore && ./semaphore migrate --config config.json
 
   migrate-postgres:
     runs-on: ubuntu-latest
@@ -220,9 +209,6 @@ jobs:
             }
           EOF
 
-      - name: Migrate database
-        run: |
-          chmod +x ./semaphore && ./semaphore migrate --config config.json
 
   integrate-boltdb:
     runs-on: ubuntu-latest

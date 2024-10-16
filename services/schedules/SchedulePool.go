@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/ansible-semaphore/semaphore/db"
-	"github.com/ansible-semaphore/semaphore/db_lib"
+	// "github.com/ansible-semaphore/semaphore/db_lib"
 	"github.com/ansible-semaphore/semaphore/services/tasks"
 	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
@@ -15,41 +15,6 @@ type ScheduleRunner struct {
 	projectID  int
 	scheduleID int
 	pool       *SchedulePool
-}
-
-func (r ScheduleRunner) tryUpdateScheduleCommitHash(schedule db.Schedule) (updated bool, err error) {
-	repo, err := r.pool.store.GetRepository(schedule.ProjectID, *schedule.RepositoryID)
-	if err != nil {
-		return
-	}
-
-	err = repo.SSHKey.DeserializeSecret()
-	if err != nil {
-		return
-	}
-
-	remoteHash, err := db_lib.GitRepository{
-		Logger:     nil,
-		TemplateID: schedule.TemplateID,
-		Repository: repo,
-		Client:     db_lib.CreateDefaultGitClient(),
-	}.GetLastRemoteCommitHash()
-
-	if err != nil {
-		return
-	}
-
-	if schedule.LastCommitHash != nil && remoteHash == *schedule.LastCommitHash {
-		return
-	}
-
-	err = r.pool.store.SetScheduleCommitHash(schedule.ProjectID, schedule.ID, remoteHash)
-	if err != nil {
-		return
-	}
-
-	updated = true
-	return
 }
 
 func (r ScheduleRunner) Run() {
@@ -62,18 +27,6 @@ func (r ScheduleRunner) Run() {
 	if err != nil {
 		log.Error(err)
 		return
-	}
-
-	if schedule.RepositoryID != nil {
-		var updated bool
-		updated, err = r.tryUpdateScheduleCommitHash(schedule)
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		if !updated {
-			return
-		}
 	}
 
 	_, err = r.pool.taskPool.AddTask(db.Task{
@@ -111,7 +64,7 @@ func (p *SchedulePool) Refresh() {
 	p.locker.Lock()
 	p.clear()
 	for _, schedule := range schedules {
-		if schedule.RepositoryID == nil && !schedule.Active {
+		if !schedule.Active {
 			continue
 		}
 

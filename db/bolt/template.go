@@ -19,10 +19,6 @@ func (d *BoltDb) CreateTemplate(template db.Template) (newTemplate db.Template, 
 		return
 	}
 	newTemplate = newTpl.(db.Template)
-	err = d.UpdateTemplateVaults(template.ProjectID, newTemplate.ID, template.Vaults)
-	if err != nil {
-		return
-	}
 	err = db.FillTemplate(d, &newTemplate)
 	return
 }
@@ -39,7 +35,7 @@ func (d *BoltDb) UpdateTemplate(template db.Template) error {
 	if err != nil {
 		return err
 	}
-	return d.UpdateTemplateVaults(template.ProjectID, template.ID, template.Vaults)
+	return nil
 }
 
 func (d *BoltDb) GetTemplates(projectID int, filter db.TemplateFilter, params db.RetrieveQueryParams) (templates []db.Template, err error) {
@@ -67,7 +63,6 @@ func (d *BoltDb) GetTemplates(projectID int, filter db.TemplateFilter, params db
 	templatesMap := make(map[int]*db.Template)
 
 	for i := 0; i < len(templates); i++ {
-		templates[i].Vaults, err = d.GetTemplateVaults(projectID, templates[i].ID)
 		templatesMap[templates[i].ID] = &templates[i]
 	}
 

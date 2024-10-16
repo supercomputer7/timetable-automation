@@ -121,13 +121,7 @@ func createStore(token string) db.Store {
 
 	store.Connect(token)
 
-	err := db.Migrate(store)
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = db.FillConfigFromDB(store)
+	err := db.FillConfigFromDB(store)
 
 	if err != nil {
 		panic(err)

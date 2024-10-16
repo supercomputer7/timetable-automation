@@ -9,9 +9,8 @@ import (
 
 func (d *SqlDb) CreateTaskStage(stage db.TaskStage) (db.TaskStage, error) {
 	_, err := d.exec(
-		"insert into task__stage (task_id, type) VALUES (?, ?, ?, ?)",
+		"insert into task__stage (task_id) VALUES (?, ?, ?, ?)",
 		stage.TaskID,
-		stage.Type,
 		stage.Start)
 	return stage, err
 }
@@ -147,13 +146,6 @@ func (d *SqlDb) getTasks(projectID int, templateID *int, taskIDs []int, params d
 	query, args, _ := q.ToSql()
 
 	_, err = d.selectAll(tasks, query, args...)
-
-	for i := range *tasks {
-		err = (*tasks)[i].Fill(d)
-		if err != nil {
-			return
-		}
-	}
 
 	return
 }

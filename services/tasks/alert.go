@@ -421,14 +421,6 @@ func (t *TaskRunner) sendDingTalkAlert() {
 func (t *TaskRunner) alertInfos() (string, string) {
 	version := ""
 
-	if t.Task.Version != nil {
-		version = *t.Task.Version
-	} else if t.Task.BuildTaskID != nil {
-		version = "build " + strconv.Itoa(*t.Task.BuildTaskID)
-	} else {
-		version = ""
-	}
-
 	author := "—"
 
 	if t.Task.UserID != nil {

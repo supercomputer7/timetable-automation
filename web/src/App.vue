@@ -18,15 +18,6 @@
           {{ $t('projectWithNameRestored', {projectName: restoreProjectResult.projectName}) }}
         </v-alert>
 
-        <v-alert
-          dense
-          outlined
-          type="error"
-          class="mb-0"
-        >
-          <b>{{ $t('emptyKeysRestored', {emptyKeys: restoreProjectResult.emptyKeys}) }}</b>
-          {{ $t('pleaseUpdateAccessKeys') }}
-        </v-alert>
       </div>
     </YesNoDialog>
 
@@ -289,85 +280,6 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item
-          v-if="project.type === ''"
-          key="inventory"
-          :to="`/project/${projectId}/inventory`"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-monitor-multiple</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ $t('inventory') }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item
-          v-if="project.type === ''"
-          key="environment"
-          :to="`/project/${projectId}/environment`"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-code-braces</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ $t('environment') }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item
-          v-if="project.type === ''"
-          key="keys"
-          :to="`/project/${projectId}/keys`"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-key-change</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ $t('keyStore') }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item
-          v-if="project.type === ''"
-          key="repositories"
-          :to="`/project/${projectId}/repositories`"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-git</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ $t('repositories') }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item
-          v-if="project.type === ''"
-          key="integrations"
-          :to="`/project/${projectId}/integrations`"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-connection</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ $t('integrations') }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item key="team" :to="`/project/${projectId}/team`">
-          <v-list-item-icon>
-            <v-icon>mdi-account-multiple</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ $t('team') }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
       </v-list>
 
       <template v-slot:append>

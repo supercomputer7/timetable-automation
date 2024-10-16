@@ -8,16 +8,9 @@ import Activity from '../views/project/Activity.vue';
 import Settings from '../views/project/Settings.vue';
 import Templates from '../views/project/Templates.vue';
 import TemplateView from '../views/project/TemplateView.vue';
-import Environment from '../views/project/Environment.vue';
-import Inventory from '../views/project/Inventory.vue';
-import Keys from '../views/project/Keys.vue';
-import Repositories from '../views/project/Repositories.vue';
-import Team from '../views/project/Team.vue';
 import Users from '../views/Users.vue';
 import Auth from '../views/Auth.vue';
 import New from '../views/project/New.vue';
-import Integrations from '../views/project/Integrations.vue';
-import IntegrationExtractor from '../views/project/IntegrationExtractor.vue';
 import Apps from '../views/Apps.vue';
 import Runners from '../views/Runners.vue';
 
@@ -67,38 +60,6 @@ const routes = [
   {
     path: '/project/:projectId/views/:viewId/templates/:templateId',
     component: TemplateView,
-  },
-  // {
-  //   path: '/project/:projectId/views/:viewId/templates/:templateId/edit',
-  //   component: TemplateEdit,
-  // },
-  {
-    path: '/project/:projectId/environment',
-    component: Environment,
-  },
-  {
-    path: '/project/:projectId/inventory',
-    component: Inventory,
-  },
-  {
-    path: '/project/:projectId/integrations',
-    component: Integrations,
-  },
-  {
-    path: '/project/:projectId/integration/:integrationId',
-    component: IntegrationExtractor,
-  },
-  {
-    path: '/project/:projectId/repositories',
-    component: Repositories,
-  },
-  {
-    path: '/project/:projectId/keys',
-    component: Keys,
-  },
-  {
-    path: '/project/:projectId/team',
-    component: Team,
   },
   {
     path: '/auth/login',

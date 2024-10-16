@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -17,7 +16,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/go-github/github"
 	"github.com/gorilla/securecookie"
 )
 
@@ -607,23 +605,6 @@ func AnsibleVersion() string {
 	return string(bytes)
 }
 
-// CheckUpdate uses the GitHub client to check for new tags in the semaphore repo
-func CheckUpdate() (updateAvailable *github.RepositoryRelease, err error) {
-	// fetch releases
-	gh := github.NewClient(nil)
-	releases, _, err := gh.Repositories.ListReleases(context.TODO(), "ansible-semaphore", "semaphore", nil)
-	if err != nil {
-		return
-	}
-
-	updateAvailable = nil
-	if (*releases[0].TagName)[1:] != Version() {
-		updateAvailable = releases[0]
-	}
-
-	return
-}
-
 func (d *DbConfig) IsPresent() bool {
 	return d.GetHostname() != ""
 }
@@ -782,11 +763,9 @@ func (conf *ConfigType) GetDBConfig() (dbConfig DbConfig, err error) {
 func (conf *ConfigType) GenerateSecrets() {
 	hash := securecookie.GenerateRandomKey(32)
 	encryption := securecookie.GenerateRandomKey(32)
-	accessKeyEncryption := securecookie.GenerateRandomKey(32)
 
 	conf.CookieHash = base64.StdEncoding.EncodeToString(hash)
 	conf.CookieEncryption = base64.StdEncoding.EncodeToString(encryption)
-	conf.AccessKeyEncryption = base64.StdEncoding.EncodeToString(accessKeyEncryption)
 }
 
 var appCommands = map[string]string{

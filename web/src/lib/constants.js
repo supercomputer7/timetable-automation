@@ -108,19 +108,8 @@ export const APP_ICONS = {
 };
 
 export const APP_TITLE = {
-  ansible: 'Ansible Playbook',
-  terraform: 'Terraform Code',
-  tofu: 'OpenTofu Code',
   bash: 'Bash Script',
-  pulumi: 'Pulumi Code',
   python: 'Python Script',
-  powershell: 'PowerShell Script',
-};
-
-export const APP_INVENTORY_TITLE = {
-  ansible: 'Ansible Inventory',
-  terraform: 'Terraform Workspace',
-  tofu: 'OpenTofu Workspace',
 };
 
 export const DEFAULT_APPS = Object.keys(APP_ICONS);

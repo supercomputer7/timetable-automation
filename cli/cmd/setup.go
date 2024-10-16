@@ -42,12 +42,6 @@ func doSetup() int {
 	defer store.Close("setup")
 	store.Connect("setup")
 
-	fmt.Println("Running db Migrations..")
-	if err := db.Migrate(store); err != nil {
-		fmt.Printf("Database migrations failed!\n %v\n", err.Error())
-		os.Exit(1)
-	}
-
 	stdin := bufio.NewReader(os.Stdin)
 
 	var user db.UserWithPwd

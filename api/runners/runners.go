@@ -49,9 +49,7 @@ func RunnerMiddleware(next http.Handler) http.Handler {
 func GetRunner(w http.ResponseWriter, r *http.Request) {
 	runner := context.Get(r, "runner").(db.Runner)
 
-	data := runners.RunnerState{
-		AccessKeys: make(map[int]db.AccessKey),
-	}
+	data := runners.RunnerState {}
 
 	tasks := helpers.TaskPool(r).GetRunningTasks()
 
@@ -61,54 +59,12 @@ func GetRunner(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if tsk.Task.Status == task_logger.TaskStartingStatus {
-
 			data.NewJobs = append(data.NewJobs, runners.JobData{
 				Username:            tsk.Username,
 				IncomingVersion:     tsk.IncomingVersion,
 				Task:                tsk.Task,
 				Template:            tsk.Template,
-				Inventory:           tsk.Inventory,
-				InventoryRepository: tsk.Inventory.Repository,
-				Repository:          tsk.Repository,
-				Environment:         tsk.Environment,
 			})
-
-			if tsk.Inventory.SSHKeyID != nil {
-				err := tsk.Inventory.SSHKey.DeserializeSecret()
-				if err != nil {
-					// TODO: return error
-				}
-				data.AccessKeys[*tsk.Inventory.SSHKeyID] = tsk.Inventory.SSHKey
-			}
-
-			if tsk.Inventory.BecomeKeyID != nil {
-				err := tsk.Inventory.BecomeKey.DeserializeSecret()
-				if err != nil {
-					// TODO: return error
-				}
-				data.AccessKeys[*tsk.Inventory.BecomeKeyID] = tsk.Inventory.BecomeKey
-			}
-
-			if tsk.Template.Vaults != nil {
-				for _, vault := range tsk.Template.Vaults {
-					err := vault.Vault.DeserializeSecret()
-					if err != nil {
-						// TODO: return error
-					}
-					data.AccessKeys[vault.VaultKeyID] = *vault.Vault
-				}
-			}
-
-			if tsk.Inventory.RepositoryID != nil {
-				err := tsk.Inventory.Repository.SSHKey.DeserializeSecret()
-				if err != nil {
-					// TODO: return error
-				}
-				data.AccessKeys[tsk.Inventory.Repository.SSHKeyID] = tsk.Inventory.Repository.SSHKey
-			}
-
-			data.AccessKeys[tsk.Repository.SSHKeyID] = tsk.Repository.SSHKey
-
 		} else {
 			data.CurrentJobs = append(data.CurrentJobs, runners.JobState{
 				ID:     tsk.Task.ID,

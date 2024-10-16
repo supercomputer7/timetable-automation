@@ -166,11 +166,6 @@ func (d *BoltDb) getTasks(projectID int, templateID *int, params db.RetrieveQuer
 			}
 			tasksWithTpl[i].UserName = &usr.Name
 		}
-
-		err = tasksWithTpl[i].Fill(d)
-		if err != nil {
-			return
-		}
 	}
 
 	return

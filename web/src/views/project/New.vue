@@ -12,10 +12,6 @@
       </div>
 
       <div class="text-right">
-        <v-btn
-          color="success" class="mr-3" @click="createDemoProject()"
-        >{{ $t('CreateDemoProject') }}</v-btn>
-
         <v-btn color="primary" @click="createProject()">{{ $t('create') }}</v-btn>
       </div>
     </div>

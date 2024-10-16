@@ -13,19 +13,7 @@
       </template>
 
       <template v-slot:form="{ onSave, onError, needSave, needReset }">
-        <TerraformTaskForm
-            v-if="['terraform', 'tofu'].includes(template.app)"
-            :project-id="template.project_id"
-            item-id="new"
-            :template-id="template.id"
-            @save="onSave"
-            @error="onError"
-            :need-save="needSave"
-            :need-reset="needReset"
-            :source-task="sourceTask"
-        />
         <TaskForm
-          v-else
           :project-id="template.project_id"
           item-id="new"
           :template-id="template.id"
@@ -95,11 +83,9 @@ import TaskStatus from '@/components/TaskStatus.vue';
 import TaskLink from '@/components/TaskLink.vue';
 import EditDialog from '@/components/EditDialog.vue';
 import { TEMPLATE_TYPE_ACTION_TITLES, TEMPLATE_TYPE_ICONS } from '@/lib/constants';
-import TerraformTaskForm from '@/components/TerraformTaskForm.vue';
 
 export default {
   components: {
-    TerraformTaskForm,
     EditDialog,
     TaskStatus,
     TaskForm,

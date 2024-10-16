@@ -38,7 +38,7 @@ func (d *BoltDb) GetProjectSchedules(projectID int) (schedules []db.ScheduleWith
 	schedules = []db.ScheduleWithTpl{}
 
 	orig, err := d.getProjectSchedules(projectID, func(s db.Schedule) bool {
-		return s.RepositoryID == nil
+		return true
 	})
 
 	if err != nil {
@@ -102,14 +102,5 @@ func (d *BoltDb) SetScheduleActive(projectID int, scheduleID int, active bool) e
 		return err
 	}
 	schedule.Active = active
-	return d.updateObject(projectID, db.ScheduleProps, schedule)
-}
-
-func (d *BoltDb) SetScheduleCommitHash(projectID int, scheduleID int, hash string) error {
-	schedule, err := d.GetSchedule(projectID, scheduleID)
-	if err != nil {
-		return err
-	}
-	schedule.LastCommitHash = &hash
 	return d.updateObject(projectID, db.ScheduleProps, schedule)
 }

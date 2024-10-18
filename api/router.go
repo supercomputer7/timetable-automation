@@ -98,7 +98,6 @@ func Route() *mux.Router {
 
 	publicWebHookRouter := r.PathPrefix(webPath + "api").Subrouter()
 	publicWebHookRouter.Use(StoreMiddleware, JSONMiddleware)
-	//publicWebHookRouter.Path("/integrations/{integration_alias}").HandlerFunc(ReceiveIntegration).Methods("POST", "GET", "OPTIONS")
 
 	authenticatedWS := r.PathPrefix(webPath + "api").Subrouter()
 	authenticatedWS.Use(JSONMiddleware, authenticationWithStore)
